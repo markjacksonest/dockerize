@@ -1,17 +1,12 @@
-FROM golang:1.17-alpine3.15 AS binary
-RUN apk --no-cache --update add openssl git
+FROM golang:1.18.1-bullseye AS binary
+RUN apt update && apt upgrade -y && apt install -y build-essential libssl-dev openssl git make
 
 WORKDIR /go/src/github.com/jwilder/dockerize
 COPY *.go go.* /go/src/github.com/jwilder/dockerize/
+ADD ./Makefile /go/src/github.com/jwilder/dockerize/Makefile
 
 ENV GO111MODULE=on
 RUN go mod tidy
 RUN go install
 
-FROM alpine:3.15
-LABEL MAINTAINER="Jason Wilder <mail@jasonwilder.com>"
-
-COPY --from=binary /go/bin/dockerize /usr/local/bin
-
-ENTRYPOINT ["dockerize"]
-CMD ["--help"]
+ENTRYPOINT ["bash"]
